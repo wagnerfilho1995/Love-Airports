@@ -35,3 +35,27 @@ class AirportViewSet(viewsets.ModelViewSet):
                     auth = (api_username, api_pass))
 
         return Response(response.json())
+    
+    @action(detail=False,  methods=['get'])
+    def build_airports_database(self, request, pk=None):
+        '''
+            Essa função retorna uma lista com todos os aeroportos da API mockup de aeroportos domésticos
+        '''
+
+        # Request get da api passando login e senha
+        response = requests.get('http://stub.2xt.com.br/air/airports/ruGvDHwlzwbbujWq9DrOvJd3mzcvOWvj',
+                    auth = (api_username, api_pass))
+                    
+        for iata, data in response.json().items():
+            try:
+                airport, created = Airport.objects.get_or_create(
+                    iata=iata,
+                    city=data['city'],
+                    lat=float(data['lat']),
+                    lon=float(data['lon']),
+                    state=data['state']
+                )
+            except:
+                Response({'erro', 'Erro ao criar aeroporto'}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(response.json())

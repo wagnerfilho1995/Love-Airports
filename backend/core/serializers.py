@@ -11,3 +11,36 @@ class AirportSerializer(serializers.ModelSerializer):
             "lon",
             "state"
         ]
+
+class AircraftSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Aircraft
+        fields = [
+            "model",
+            "manufacturer"
+        ]
+    
+class ItinerarySerializer(serializers.ModelSerializer):
+    aircraft = AircraftSerializer(many=False, read_only=True)
+    class Meta:
+        model = Itinerary
+        fields = [
+            "departure_time",
+            "arrival_time",
+            "fare_price",
+            "aircraft"
+        ]
+
+class TravelSerializer(serializers.ModelSerializer):
+    origin = AirportSerializer(many=False, read_only=True)
+    destination = AirportSerializer(many=False, read_only=True)
+    itinerary = ItinerarySerializer(many=False, read_only=True)
+    class Meta:
+        model = Travel
+        fields = [
+            "departure_date",
+            "origin",
+            "destination",
+            "currency",
+            "itinerary"
+        ]

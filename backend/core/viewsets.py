@@ -59,3 +59,27 @@ class AirportViewSet(viewsets.ModelViewSet):
                 Response({'erro', 'Erro ao criar aeroporto'}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(response.json())
+
+class AircraftViewSet(viewsets.ModelViewSet):
+    
+    queryset = Aircraft.objects.all()
+    serializer_class = AircraftSerializer
+    permission_classes = [permissions.AllowAny]
+    
+    http_method_names = ['get', 'post', 'options', 'head', 'put', 'update', 'delete']
+
+class ItineraryViewSet(viewsets.ModelViewSet):
+    
+    queryset = Itinerary.objects.all()
+    serializer_class = ItinerarySerializer
+    permission_classes = [permissions.AllowAny]
+    
+    http_method_names = ['get', 'post', 'options', 'head', 'put', 'update', 'delete']
+
+class TravelViewSet(viewsets.ModelViewSet):
+    
+    queryset = Travel.objects.all()
+    serializer_class = TravelSerializer
+    permission_classes = [permissions.AllowAny]
+    
+    http_method_names = ['get', 'post', 'options', 'head', 'put', 'update', 'delete']

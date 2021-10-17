@@ -8,4 +8,7 @@ Setting Endpoints.
 
 router = DefaultRouter()
 
-router.register(r'airport', viewsets.AirportViewSet)
+router.register(r'airports', viewsets.AirportViewSet)
+router.register(r'aircrafts', viewsets.AircraftViewSet)
+router.register(r'itineraries', viewsets.ItineraryViewSet)
+router.register(r'travels', viewsets.TravelViewSet)

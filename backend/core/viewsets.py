@@ -9,7 +9,11 @@ from .serializers import *
 from .models import *
 import requests
 from requests.auth import HTTPBasicAuth
-from conf.permissions import api_username, api_pass
+from conf.permissions import api_username, api_pass, api_key
+from .utils import *
+import random
+from django.utils import timezone
+from datetime import date, datetime, timedelta
 
 '''
 As classes desse arquivo realizam uma query (queryset = Model.objects.all()) dos Models e retornam essa requisição para o usuário
@@ -39,7 +43,8 @@ class AirportViewSet(viewsets.ModelViewSet):
     @action(detail=False,  methods=['get'])
     def build_airports_database(self, request, pk=None):
         '''
-            Essa função retorna uma lista com todos os aeroportos da API mockup de aeroportos domésticos
+            Essa função percorre uma lista com todos os aeroportos da API mockup de aeroportos domésticos 
+            e cria um Airport no banco de dados em cada iteração
         '''
 
         # Request get da api passando login e senha
@@ -59,6 +64,90 @@ class AirportViewSet(viewsets.ModelViewSet):
                 Response({'erro', 'Erro ao criar aeroporto'}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(response.json())
+
+    @action(detail=False,  methods=['get'])
+    def airports_X_airports(self, request, pk=None):
+        '''
+            Essa função faz 20x20 combinações entre aeroportos diferentes, salvando cada viagem
+            entre eles, calculando e retornando a melhor opção de voo a ser tomado para cada uma 
+            delas.
+        '''
+
+        random_airports = AirportSerializer(Airport.objects.order_by('?')[:40], many=True)
+        
+        # 40 dias a frente de hoje
+        date = (datetime.today() + timedelta(days = 40)).strftime('%Y-%m-%d')
+        combinations = []
+        for airport_1 in random_airports.data[:20]:
+            suitable = {}
+            for airport_2 in random_airports.data[20:]:
+                url = f'http://stub.2xt.com.br/air/search/{api_key}/{airport_1["iata"]}/{airport_2["iata"]}/{date}'
+                response = requests.get(url,
+                            auth = (api_username, api_pass))
+                dist = round(haversine(airport_1['lat'], airport_1['lon'], airport_2['lat'], airport_2['lon']), 2)
+                suitable['cost'] = -1
+                for data in response.json()['options']:
+                    try:
+                        aircraft, created = Aircraft.objects.get_or_create(
+                            model=data['aircraft']['model'],
+                            manufacturer=data['aircraft']['manufacturer']
+                        )
+                    except:
+                        Response({'erro', 'Erro ao criar avião'}, status=status.HTTP_400_BAD_REQUEST)
+
+                    
+                    departure_time = datetime.strptime(data['departure_time'], '%Y-%m-%dT%H:%M:%S')
+                    arrival_time = datetime.strptime(data['arrival_time'], '%Y-%m-%dT%H:%M:%S')
+                    time_delta = (arrival_time - departure_time)
+                    hours = (time_delta.total_seconds() / 60) / 60
+                    if suitable['cost'] == -1:
+                        suitable['cost'] = float(data['fare_price'])
+                        suitable['dist'] = dist
+                        suitable['url'] = url
+                        suitable['aircraft'] = aircraft
+                    elif suitable['cost'] > float(data['fare_price']):
+                        suitable['cost'] = float(data['fare_price'])
+                        suitable['dist'] = dist
+                        suitable['url'] = url
+                        suitable['aircraft'] = aircraft
+
+                    try:
+                        itinerary, created_itinerary = Itinerary.objects.get_or_create(
+                            departure_time=departure_time,
+                            arrival_time=arrival_time,
+                            fare_price=float(data['fare_price']),
+                            aircraft=aircraft
+                        )
+                    except:
+                        Response({'erro', 'Erro ao criar itinerário'}, status=status.HTTP_400_BAD_REQUEST)
+
+                    try:
+                        travel, created = Travel.objects.get_or_create(
+                            departure_date=response.json()['summary']['departure_date'],
+                            origin=airport_1,
+                            destination=airport_2,
+                            currency=response.json()['summary']['currency'],
+                            duration_h=round(hours, 2),
+                            velocity_km=round(dist/hours, 2),
+                            fare_by_km=round(float(data['fare_price'])/dist, 2),
+                            itinerary=itinerary
+                        )
+                    except:
+                        Response({'erro', 'Erro ao criar objeto Travel'}, status=status.HTTP_400_BAD_REQUEST)
+
+            if suitable['url']:
+                try:
+                    suitable, created = Suitable.objects.get_or_create(
+                        url=suitable['url'],
+                        dist=suitable['dist'],
+                        cost=suitable['cost'],
+                        aircraft=suitable['aircraft']
+                    )
+                except:
+                    Response({'erro', 'Erro ao criar objeto Suitable'}, status=status.HTTP_400_BAD_REQUEST)
+                combinations.append(suitable)
+
+        return Response([])
 
 class AircraftViewSet(viewsets.ModelViewSet):
     
@@ -80,6 +169,14 @@ class TravelViewSet(viewsets.ModelViewSet):
     
     queryset = Travel.objects.all()
     serializer_class = TravelSerializer
+    permission_classes = [permissions.AllowAny]
+    
+    http_method_names = ['get', 'post', 'options', 'head', 'put', 'update', 'delete']
+
+class SuitableViewSet(viewsets.ModelViewSet):
+    
+    queryset = Suitable.objects.all()
+    serializer_class = SuitableSerializer
     permission_classes = [permissions.AllowAny]
     
     http_method_names = ['get', 'post', 'options', 'head', 'put', 'update', 'delete']

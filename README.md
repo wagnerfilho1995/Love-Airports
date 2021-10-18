@@ -52,3 +52,21 @@ $ python manage.py migrate
 ```system
 $ python manage.py runserver
 ```
+### Fill database:
+
+1. To acess Server on browser use the url;
+```
+http://localhost:8000/
+```
+
+2. Acess the following endpoint to create Airports models;
+```
+http://localhost:8000/core/airports/build_airports_database/
+```
+
+3. Access the endpoint below to create a 20x20 trip matrix, where 
+each trip is stored in the bank and the best flight option for each 
+trip is also calculated;
+```
+http://localhost:8000/core/airports/airports_X_airports/
+```

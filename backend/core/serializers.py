@@ -44,3 +44,14 @@ class TravelSerializer(serializers.ModelSerializer):
             "currency",
             "itinerary"
         ]
+
+class SuitableSerializer(serializers.ModelSerializer):
+    aircraft = AircraftSerializer(many=False, read_only=True)
+    class Meta:
+        model = Suitable
+        fields = [
+            "url",
+            "dist",
+            "cost",
+            "aircraft"
+        ]

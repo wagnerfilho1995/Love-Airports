@@ -41,7 +41,7 @@ class Itinerary(models.Model):
     )
 
     fare_price = models.FloatField(max_length=500, blank = False, null = False)
-
+    
     aircraft = models.ForeignKey(
         Aircraft, 
         on_delete = models.CASCADE,
@@ -81,7 +81,12 @@ class Travel(models.Model):
     )
 
     currency = models.CharField(max_length=500, blank = False, null = False)
-
+    
+    distance_km = models.FloatField(blank = True, null = True)
+    velocity_km = models.FloatField(blank = True, null = True)
+    fare_by_km = models.FloatField(blank = True, null = True)
+    duration_h = models.FloatField(blank = True, null = True)
+    
     itinerary = models.ForeignKey(
         Itinerary, 
         on_delete = models.CASCADE,
@@ -91,3 +96,19 @@ class Travel(models.Model):
 
     def __str__(self):
         return self.origin.state + '->' + self.destination.state
+
+class Suitable(models.Model):
+    class Meta:
+        ordering = ['-id']
+
+    url = models.CharField(max_length=500, blank = False, null = False)
+    dist = models.FloatField(blank = False, null = False)
+    cost = models.FloatField(blank = False, null = False)
+    
+    aircraft = models.ForeignKey(
+        Aircraft,
+        on_delete = models.CASCADE,
+        related_name='suitable_aircraft',
+        blank = False,
+        null = False
+    )

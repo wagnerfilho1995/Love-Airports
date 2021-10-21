@@ -13,6 +13,7 @@ from conf.permissions import api_username, api_pass, api_key
 from .utils import *
 import random
 from django.utils import timezone
+from django.db.models import Count
 from datetime import date, datetime, timedelta
 
 '''
@@ -86,6 +87,8 @@ class AirportViewSet(viewsets.ModelViewSet):
                             auth = (api_username, api_pass))
                 dist = round(haversine(airport_1['lat'], airport_1['lon'], airport_2['lat'], airport_2['lon']), 2)
                 suitable['cost'] = -1
+                departure_date = datetime.strptime(response.json()['summary']['departure_date'], '%Y-%m-%d')
+                currency = response.json()['summary']['currency']
                 for data in response.json()['options']:
                     try:
                         aircraft, created = Aircraft.objects.get_or_create(
@@ -121,19 +124,29 @@ class AirportViewSet(viewsets.ModelViewSet):
                     except:
                         Response({'erro', 'Erro ao criar itinerário'}, status=status.HTTP_400_BAD_REQUEST)
 
+                    if hours < 1:
+                        velocity_km = (dist/int(hours * 100)/100)
+                    else: 
+                        velocity_km = dist/int(hours)
+                    
+                    duration_h = round(hours, 2)
+                    fare_by_km = round(float(data['fare_price'])/int(dist), 2)
+                    velocity_km = round(velocity_km, 2)
+
                     try:
-                        travel, created = Travel.objects.get_or_create(
-                            departure_date=response.json()['summary']['departure_date'],
-                            origin=airport_1,
-                            destination=airport_2,
-                            currency=response.json()['summary']['currency'],
-                            duration_h=round(hours, 2),
-                            velocity_km=round(dist/hours, 2),
-                            fare_by_km=round(float(data['fare_price'])/dist, 2),
+                        travel = Travel.objects.create(
+                            departure_date=departure_date,
+                            origin=Airport.objects.get(id=airport_1['id']),
+                            destination=Airport.objects.get(id=airport_2['id']),
+                            currency=currency,
+                            duration_h=duration_h,
+                            velocity_km=velocity_km,
+                            fare_by_km=fare_by_km,
                             itinerary=itinerary
                         )
                     except:
                         Response({'erro', 'Erro ao criar objeto Travel'}, status=status.HTTP_400_BAD_REQUEST)
+
 
             if suitable['url']:
                 try:
@@ -147,7 +160,48 @@ class AirportViewSet(viewsets.ModelViewSet):
                     Response({'erro', 'Erro ao criar objeto Suitable'}, status=status.HTTP_400_BAD_REQUEST)
                 combinations.append(suitable)
 
-        return Response([])
+        return Response(combinations)
+
+    @action(detail=False,  methods=['get'])
+    def get_airports_demography(self, request, pk=None):
+        airports = Airport.objects.values('state').annotate(Count('id')).order_by().filter(id__count__gt=0)
+        resp = {}
+        for airports in airports:
+            resp[airports['state']] = airports['id__count']
+        
+        return Response(dict(sorted(resp.items(), key=lambda item: item[1], reverse=True)))
+    
+    @action(detail=False,  methods=['get'])
+    def get_airports_distance(self, request, pk=None):
+        
+        airports = AirportSerializer(Airport.objects.all(), many=True)
+        resp = {}
+
+        for airport1 in airports.data:
+            for airport2 in airports.data:
+                if airport1['id'] != airport2['id']:
+                    dist = haversine(airport1['lat'], airport1['lon'], airport2['lat'], airport2['lon'])
+                    if airport1['iata'] not in resp:
+                        resp[airport1['iata']] = {
+                            'iata': airport1['iata'],
+                            'closer': {
+                                'dist': dist,
+                                'iata': airport2['iata']
+                            },
+                            'faraway':  {
+                                'dist': dist,
+                                'iata': airport2['iata']
+                            }
+                        }
+                    else:  
+                        if dist < resp[airport1['iata']]['closer']['dist']:
+                            resp[airport1['iata']]['closer']['dist'] = dist
+                            resp[airport1['iata']]['closer']['iata'] = airport2['iata']
+                        elif resp[airport1['iata']]['faraway']['dist'] < dist:
+                            resp[airport1['iata']]['faraway']['dist'] = dist    
+                            resp[airport1['iata']]['faraway']['iata'] = airport2['iata']                  
+        
+        return Response(resp)
 
 class AircraftViewSet(viewsets.ModelViewSet):
     
@@ -172,6 +226,14 @@ class TravelViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.AllowAny]
     
     http_method_names = ['get', 'post', 'options', 'head', 'put', 'update', 'delete']
+
+    @action(detail=False,  methods=['get'])
+    def long_trips(self, request, pk=None):
+        #models = TravelSerializer(Travel.objects.filter()[:30].order_by('duration_h'), many=True)
+        models = Travel.objects.filter(duration_h__isnull=False).order_by('-duration_h')[:30]
+        models = TravelSerializer(models, many=True)
+        
+        return Response(models.data)
 
 class SuitableViewSet(viewsets.ModelViewSet):
     

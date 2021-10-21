@@ -57,7 +57,7 @@ class Travel(models.Model):
     class Meta:
         ordering = ['-id']
 
-    departure_date = models.DateField(        
+    departure_date = models.DateTimeField(        
         auto_now = False, 
         auto_now_add = False,
         null = False,

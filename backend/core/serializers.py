@@ -5,6 +5,7 @@ class AirportSerializer(serializers.ModelSerializer):
     class Meta:
         model = Airport
         fields = [
+            "id",
             "iata",
             "city",
             "lat",
@@ -42,7 +43,10 @@ class TravelSerializer(serializers.ModelSerializer):
             "origin",
             "destination",
             "currency",
-            "itinerary"
+            "itinerary",
+            "duration_h",
+            "velocity_km",
+            "fare_by_km"
         ]
 
 class SuitableSerializer(serializers.ModelSerializer):

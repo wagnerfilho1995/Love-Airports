@@ -73,7 +73,7 @@ http://localhost:8000/core/airports/airports_X_airports/
 
 
 
-### Fontend
+### Frontend
 
 ```system
 $ cd frontend
@@ -94,4 +94,24 @@ $ npm install
 ```system
 $ quasar dev
 ```
+
+### Software
+
+#### Home page
+
+The home page shows us the distribution of the number of airports throughout Brazil. There is a side menu with links to access specific pages dedicated to travel and airports. Click to browse these pages.
+
+![alt text](https://github.com/wagnerfilho1995/Love-Airports/blob/main/Pages-imgs/Home.png?raw=true)
+
+#### Trips
+
+The trips page illustrates a table with information regarding the longest trips recorded in the system.
+
+![alt text](https://github.com/wagnerfilho1995/Love-Airports/blob/main/Pages-imgs/Viagens.png?raw=true)
+
+#### Airports
+
+The airports page illustrates a table with information on all airports registered in the database, also describing, for each airport, its closest and farthest neighbor.
+
+![alt text](https://github.com/wagnerfilho1995/Love-Airports/blob/main/Pages-imgs/Aeroportos.png?raw=true)
 

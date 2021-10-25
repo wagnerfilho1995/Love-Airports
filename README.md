@@ -70,3 +70,28 @@ trip is also calculated;
 ```
 http://localhost:8000/core/airports/airports_X_airports/
 ```
+
+
+
+### Fontend
+
+```system
+$ cd frontend
+```
+
+#### to run for the first time:
+
+1. Install NodeJS;
+
+2. Install dependencies:
+
+```system
+$ npm install
+```
+
+#### Now, Run the local server
+
+```system
+$ quasar dev
+```
+

@@ -2,6 +2,7 @@ import Vue from 'vue'
 import Vuex from 'vuex'
 
 import Airports from './Airports'
+import Travels from './Travels'
 
 import VueMoment from 'vue-moment'
 Vue.use(VueMoment)
@@ -19,7 +20,8 @@ Vue.use(Vuex)
 export default function (/* { ssrContext } */) {
   const Store = new Vuex.Store({
     modules: {
-      Airports
+      Airports,
+      Travels
     },
 
     // enable strict mode (adds overhead!)

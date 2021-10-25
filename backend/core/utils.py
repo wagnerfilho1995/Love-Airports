@@ -14,7 +14,7 @@ def haversine(lat1, lon1, lat2, lon2):
 	# apply formulae
 	a = (pow(math.sin(dLat / 2), 2) +
 		pow(math.sin(dLon / 2), 2) *
-			math.cos(lat1) * math.cos(lat2));
+			math.cos(lat1) * math.cos(lat2))
 	rad = 6371
 	c = 2 * math.asin(math.sqrt(a))
 	return rad * c

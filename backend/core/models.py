@@ -86,6 +86,7 @@ class Travel(models.Model):
     velocity_km = models.FloatField(blank = True, null = True)
     fare_by_km = models.FloatField(blank = True, null = True)
     duration_h = models.FloatField(blank = True, null = True)
+    dist = models.FloatField(blank = True, null = True)
     
     itinerary = models.ForeignKey(
         Itinerary, 

@@ -142,6 +142,7 @@ class AirportViewSet(viewsets.ModelViewSet):
                             duration_h=duration_h,
                             velocity_km=velocity_km,
                             fare_by_km=fare_by_km,
+                            dist=dist,
                             itinerary=itinerary
                         )
                     except:
@@ -184,22 +185,32 @@ class AirportViewSet(viewsets.ModelViewSet):
                     if airport1['iata'] not in resp:
                         resp[airport1['iata']] = {
                             'iata': airport1['iata'],
+                            'city': airport1['city'],
+                            'state': airport1['state'],
                             'closer': {
                                 'dist': dist,
-                                'iata': airport2['iata']
+                                'iata': airport2['iata'],
+                                'city': airport2['city'],
+                                'state': airport2['state']
                             },
                             'faraway':  {
                                 'dist': dist,
-                                'iata': airport2['iata']
+                                'iata': airport2['iata'],
+                                'city': airport2['city'],
+                                'state': airport2['state']
                             }
                         }
                     else:  
                         if dist < resp[airport1['iata']]['closer']['dist']:
                             resp[airport1['iata']]['closer']['dist'] = dist
                             resp[airport1['iata']]['closer']['iata'] = airport2['iata']
+                            resp[airport1['iata']]['closer']['city'] = airport2['city']
+                            resp[airport1['iata']]['closer']['state'] = airport2['state']
                         elif resp[airport1['iata']]['faraway']['dist'] < dist:
                             resp[airport1['iata']]['faraway']['dist'] = dist    
-                            resp[airport1['iata']]['faraway']['iata'] = airport2['iata']                  
+                            resp[airport1['iata']]['faraway']['iata'] = airport2['iata']  
+                            resp[airport1['iata']]['faraway']['city'] = airport2['city']  
+                            resp[airport1['iata']]['faraway']['state'] = airport2['state']              
         
         return Response(resp)
 
@@ -229,11 +240,22 @@ class TravelViewSet(viewsets.ModelViewSet):
 
     @action(detail=False,  methods=['get'])
     def long_trips(self, request, pk=None):
-        #models = TravelSerializer(Travel.objects.filter()[:30].order_by('duration_h'), many=True)
         models = Travel.objects.filter(duration_h__isnull=False).order_by('-duration_h')[:30]
         models = TravelSerializer(models, many=True)
         
         return Response(models.data)
+    
+    @action(detail=False,  methods=['get'])
+    def set_all_dist(self, request, pk=None):
+        models = Travel.objects.all()
+        models = TravelSerializer(models, many=True)
+        for model in models.data:
+            md = Travel.objects.get(id=model['id'])
+            dist = haversine(model['origin']['lat'], model['origin']['lon'], model['destination']['lat'], model['destination']['lon'])
+            md.dist = dist
+            md.save()
+            
+        return Response('Values updated')
 
 class SuitableViewSet(viewsets.ModelViewSet):
     

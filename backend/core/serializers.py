@@ -39,6 +39,7 @@ class TravelSerializer(serializers.ModelSerializer):
     class Meta:
         model = Travel
         fields = [
+            "id",
             "departure_date",
             "origin",
             "destination",
@@ -46,7 +47,8 @@ class TravelSerializer(serializers.ModelSerializer):
             "itinerary",
             "duration_h",
             "velocity_km",
-            "fare_by_km"
+            "fare_by_km",
+            "dist"
         ]
 
 class SuitableSerializer(serializers.ModelSerializer):

@@ -1,0 +1,50 @@
+.center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+}
+.text-airport {
+  text-align: left;
+  font: bold 32px/34px;
+  letter-spacing: 0px;
+  color: #ffffff;
+  opacity: 1;
+}
+.custom-caption {
+  text-align: start;
+  padding: 12px;
+  color: white;
+  background-color: rgba(0, 0, 0, 0.3);
+}
+
+.my-card {
+  max-width: 800px;
+}
+
+.title-page {
+  top: 110px;
+  left: 258px;
+  width: 382px;
+  height: 29px;
+  text-align: left;
+  font: normal normal bold 24px/29px Roboto;
+  letter-spacing: 0px;
+  color: #333f48;
+  opacity: 1;
+}
+
+.title-card {
+  position: relative;
+  text-align: left;
+  font: normal normal bold 18px/20px Roboto;
+  letter-spacing: 0px;
+  color: #333f48;
+  opacity: 1;
+}
+
+.title-card span {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+}
